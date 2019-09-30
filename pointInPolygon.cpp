@@ -1,118 +1,82 @@
-#include <iostream>
+#include <iostream> 
 #include <algorithm>
 #include <vector>
 using namespace std;
-struct Point {
-	double x, y;
-	Point(double a=0., double b=0.) :x(a), y(b){}
-	bool operator==(Point& a) {
-		return (a.x == x)&&(a.y == y);
-	}
+const int INF = 1000000;
+struct Point
+{
+	int x,y;
 };
-struct Edge {
-	Point a, b;
-	Edge(Point c, Point d) { a = c;b = d; }
-};
-
-double leftTurn(Point a, Point b, Point q) {
-	return (q.x - a.x)*(b.y - a.y) - (q.y - a.y)*(b.x-a.x);
+bool onSegment(Point p, Point q, Point r)
+{
+	if (q.x <= max(p.x, r.x) && q.x >= min(p.x, r.x) &&q.y <= max(p.y, r.y) && q.y >= min(p.y, r.y))
+		return 1;
+	return 0;
 }
-
-signed main() {
-	cout << "Enter x and y of point ";
-	Point p;
-	cin >> p.x >> p.y;
-	cout << "\nEnter first point of polygon ";
-	vector<Point> vec;
-	double currx, curry;
-	cin >> currx >> curry;
-	vec.push_back(Point(currx, curry));
-	cout << "\nEnter the number of shifts ";
-	int n;
-	cin >> n;
-	cout << "\nEnter the shifts ";
-	for (int i = 0;i < n;i++) {
-		int shift;
-		cin >> shift;
-		if (shift == 0) {
-			currx++;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 1) {
-			currx++;
-			curry++;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 2) {
-			curry++;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 3) {
-			currx--;
-			curry++;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 4) {
-			currx--;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 5) {
-			currx--;
-			curry--;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 6) {
-			curry--;
-			vec.push_back(Point(currx, curry));
-		}
-		else if (shift == 7) {
-			currx++;
-			curry--;
-			vec.push_back(Point(currx, curry));
-		}
-	}
-	vector<Edge> e;
-	for (int i = 1;i < vec.size();i++) {
-		e.push_back(Edge(vec[i - 1], vec[i]));
-	}
-	e.push_back(Edge(vec[n - 1], vec[0]));
-	bool INSIDE = 0;
-	for (int i = 0;i < e.size();i++) {
-		Edge currEdge = e[i];
-		if (currEdge.a == p || currEdge.b == p) {
-			INSIDE = 1;
-			break;
-		}
-		else if (currEdge.a.y == currEdge.b.y)
-			continue;
-		else if (p.y == max(currEdge.a.y, currEdge.b.y) && p.x < min(currEdge.a.x, currEdge.b.x))
-			INSIDE ^= 1;
-		else if (p.y == min(currEdge.a.y, currEdge.b.y))
-			continue;
-		else if (currEdge.a.y <= p.y <= currEdge.b.y&&leftTurn(currEdge.a, currEdge.b, p))
-			INSIDE ^= 1;
-	}
-	cout << "\n";
-	if (INSIDE == 1)
-		cout << "INSIDE";
-	else
-		cout << "OUTSIDE";
-	system("pause");
+// 0 --> p, q and r are colinear 
+// 1 --> Clockwise 
+// 2 --> Counterclockwise 
+int orientation(Point p, Point q, Point r)
+{
+	int val = (q.y-p.y)*(r.x-q.x)-(q.x-p.x)*(r.y-q.y);
+	if (val == 0) 
+		return 0;
+	if(val > 0)
+		return 1;
+	if(val < 0)
+		return 2;
+}
+bool doIntersect(Point p1, Point q1, Point p2, Point q2)
+{
+	int o1 = orientation(p1, q1, p2);
+	int o2 = orientation(p1, q1, q2);
+	int o3 = orientation(p2, q2, p1);
+	int o4 = orientation(p2, q2, q1);
+	if (o1 != o2 && o3 != o4)
+		return 0;
+	if (o1 == 0 && onSegment(p1, p2, q1)) 
+		return 1;
+	if (o2 == 0 && onSegment(p1, q2, q1)) 
+		return 1;
+	if (o3 == 0 && onSegment(p2, p1, q2)) 
+		return 1;
+	if (o4 == 0 && onSegment(p2, q1, q2)) 
+		return 1;
 	return 0;
 }
 
+bool isInside(Point polygon[], int n, Point p)
+{
+	Point extreme = { INF, p.y };
+	int count = 0, i = 0;
+	do
+	{
+		int next = (i + 1) % n;
+		if (doIntersect(polygon[i], polygon[next], p, extreme))
+		{
+			if (orientation(polygon[i], p, polygon[next]) == 0)
+				return onSegment(polygon[i], p, polygon[next]);
+			count++;
+		}
+		i = next;
+	} while (i != 0);
+	return count&1;  
+}
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+int main()
+{
+	int n;
+	cin>>n;
+	Point pol[1000];
+	for (int i = 0;i < n;i++) {
+		cin>>pol[i].x>>pol[i].y;
+	}
+	Point p;
+	cin>>p.x>>p.y;
+	if(isInside(pol,n,p))
+		cout<<"YES";
+	else
+		cout<<"NO";
+	system("pause");
+	return 0;
+}
