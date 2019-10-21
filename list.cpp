@@ -143,28 +143,6 @@ public:
 		else
 			return{ nullptr,false };
 	}
-	///function used for specific task, don't touch it
-	friend const bool checkTask(const KList& L, const KList& L1, const KList& L2, const KList& L3, const KList& L4) {
-		bool ans = 1;
-		KNode* pL = L.fpFirst;
-		pair<KNode*, bool> res1 = compareLists(pL, L1.fpFirst, L1.fSize);
-		if (res1.second == false)
-			ans = 0;
-		pL = res1.first;
-		pair<KNode*, bool> res2 = compareLists(pL, L2.fpFirst, L2.fSize);
-		if (res2.second == false)
-			ans = 0;
-		pL = res2.first;
-		pair<KNode*, bool> res3 = compareLists(pL, L3.fpFirst, L3.fSize);
-		if (res3.second == false)
-			ans = 0;
-		pL = res3.first;
-		pair<KNode*, bool> res4 = compareLists(pL, L4.fpFirst, L4.fSize);
-		if (res4.second == false)
-			ans = 0;
-		pL = res4.first;
-		return ans;
-	}
 };
 KList input(const string sFile) {
 	ifstream in(sFile);
