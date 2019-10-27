@@ -71,12 +71,12 @@ public:
 	}
 
 	///returs size of the list
-	int Size() {
+	int getSize() {
 		return fSize;
 	}
 
 	///calculates summation of infos of all nodes in the list
-	int Summa() {
+	int countSum() {
 		KNode *p = fpFirst;
 		int sum = 0;
 		while (p) {
@@ -115,6 +115,38 @@ public:
 		return t;
 	}
 
+	int operator[](int index) {
+		if (index >= fSize || index < 0) {
+			throw runtime_error("list index is out of range");
+		}
+		KNode *currentNode = fpFirst;
+		for (int i = 0;i < index;i++) {
+			currentNode = currentNode->next;
+		}
+		return currentNode->info;
+	}
+
+	
+	void erase(int index) {
+		if (index >= fSize || index < 0) {
+			throw runtime_error("list index is out of range");
+		}
+		fSize--;
+		KNode *currentNode = fpFirst;
+		KNode *lastNode=nullptr;
+		for (int i = 0;i < index;i++) {
+			lastNode = currentNode;
+			currentNode = currentNode->next;
+		}
+		if (lastNode == nullptr) {
+			fpFirst=fpFirst->next;
+		}
+		else {
+			lastNode->next=currentNode->next;
+		}
+		delete currentNode;
+	}
+	
 	///checks if first n elements of p1 are equal to first n elements of p2, use carefully, exceptions aren't prewritten
 	friend const pair<KNode*, bool> compareLists(KNode* p1, KNode* p2, int n) {
 		if (p2 == nullptr) {
@@ -154,11 +186,4 @@ KList input(const string sFile) {
 		}
 	}
 	return l;
-}
-int main() {
-	KList list=input("input.txt");
-	KList rList=Reverse(list);
-	cout<<rList<<"\n";
-	system("pause");
-	return 0;
 }
