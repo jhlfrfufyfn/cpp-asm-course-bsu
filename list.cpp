@@ -71,12 +71,12 @@ public:
 	}
 
 	///returs size of the list
-	int getSize() {
+	int getSize()const {
 		return fSize;
 	}
 
 	///calculates summation of infos of all nodes in the list
-	int countSum() {
+	int countSum()const {
 		KNode *p = fpFirst;
 		int sum = 0;
 		while (p) {
@@ -85,6 +85,7 @@ public:
 		}
 		return sum;
 	}
+
 
 	///outputs all the infos from the list, separated with space ' '
 	friend ostream& operator<<(ostream &out, const KList &l) {
@@ -126,27 +127,58 @@ public:
 		return currentNode->info;
 	}
 
-	
+	void deletePointer(KNode *&p) {
+		if(p->next)
+			deletePointer(p->next);
+		else
+			delete p;
+	}
+
 	void erase(int index) {
 		if (index >= fSize || index < 0) {
 			throw runtime_error("list index is out of range");
 		}
-		fSize--;
 		KNode *currentNode = fpFirst;
-		KNode *lastNode=nullptr;
+		KNode *lastNode = nullptr;
 		for (int i = 0;i < index;i++) {
 			lastNode = currentNode;
 			currentNode = currentNode->next;
 		}
+		if (currentNode->next == nullptr) {
+			fppLast = &currentNode->next;
+		}
 		if (lastNode == nullptr) {
-			fpFirst=fpFirst->next;
+			fpFirst = fpFirst->next;
+			currentNode->next=nullptr;
 		}
 		else {
-			lastNode->next=currentNode->next;
+			lastNode->next = currentNode->next;
+			currentNode->next=nullptr;
 		}
-		delete currentNode;
+		deletePointer(currentNode);
+		fSize--;
 	}
-	
+
+	void insert(int index, int info) {
+		if (index<0 || index>fSize) {
+			throw runtime_error("list index is out of range");
+		}
+		KNode *curr = fpFirst;
+		KNode *last = nullptr;
+		for (int i = 0;i < index;i++) {
+			last = curr;
+			curr = curr->next;
+		}
+		KNode *p = new KNode(info, curr);
+		if (last) {
+			last->next = p;
+		}
+		else {
+			fpFirst=p;
+		}
+		fSize++;
+	}
+
 	///checks if first n elements of p1 are equal to first n elements of p2, use carefully, exceptions aren't prewritten
 	friend const pair<KNode*, bool> compareLists(KNode* p1, KNode* p2, int n) {
 		if (p2 == nullptr) {
