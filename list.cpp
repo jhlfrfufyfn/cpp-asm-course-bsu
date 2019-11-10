@@ -20,13 +20,13 @@ public:
 class KList {
 private:
 	KNode *fpFirst;///pointer to the first node of the list
-	KNode **fppLast;///pointer to the pointer to the first void(nullptr) node of the list(so we could do PushBack easily)
+	KNode **fppLast;///pointer to the pointer to the first void(nullptr) node of the list(so we could do pushBack easily)
 	unsigned int fSize;///number of nodes in the list
 
 	///function that makes (*this) a copy of given list, that starts from node p
 	void Copy(KNode *p) {
 		while (p) {
-			this->PushBack(p->info);
+			this->pushBack(p->info);
 			p = p->next;
 		}
 	}
@@ -37,6 +37,10 @@ private:
 		swap(this->fppLast, t.fppLast);
 	}
 
+	void Clear() {
+		while (fSize)
+			erase(fSize - 1);
+	}
 public:
 	///constructor, creates an empty list
 	KList() :fpFirst(nullptr), fppLast(&fpFirst), fSize(0) {}
@@ -45,9 +49,10 @@ public:
 	KList(KList const& lst) :fpFirst(nullptr), fppLast(&fpFirst), fSize(0) {
 		Copy(lst.fpFirst);
 	}
-	
+
+
 	///overloaded operator= , creates a copy of the given list and swaps this copy with our list; unused copy is erased automatically
-	KList operator=(KList const& l2) {
+	KList& operator=(KList const& l2) {
 		if (this == &l2) {
 			return *this;
 		}
@@ -57,7 +62,7 @@ public:
 	}
 
 	///function, creates a node with value x and pushes it to the beginning
-	void PushFront(int x) {
+	void pushFront(int x) {
 		fSize++;
 		fpFirst = new KNode(x, fpFirst);
 		if (fpFirst->next == nullptr) {
@@ -66,7 +71,7 @@ public:
 	}
 
 	///function, creates a node with value x and pushes it to the end
-	void PushBack(int x) {
+	void pushBack(int x) {
 		fSize++;
 		(*fppLast) = new KNode(x);
 		fppLast = &((*fppLast)->next);
@@ -75,6 +80,27 @@ public:
 	///returs size of the list
 	int getSize()const {
 		return fSize;
+	}
+
+	///returns flag of emptyness
+	bool isEmpty()const {
+		return !getSize();
+	}
+
+	///erases the last element of the list
+	void popBack() {
+		if (isEmpty()) {
+			throw out_of_range("Cannot delete from the empty list");
+		}
+		erase(fSize - 1);
+	}
+
+	///erases the first element of the list
+	void popFront() {
+		if (isEmpty()) {
+			throw out_of_range("Cannot delete from the empty list");
+		}
+		erase(0);
 	}
 
 	///calculates summation of infos of all nodes in the list
@@ -91,7 +117,7 @@ public:
 
 	///outputs all the infos from the list, separated with space ' '
 	friend ostream& operator<<(ostream &out, const KList &l) {
-		const char DIVISER=' ';
+		const char DIVISER = ' ';
 		KNode *p = l.fpFirst;
 		while (p) {
 			out << p->info << DIVISER;
@@ -100,10 +126,9 @@ public:
 		return out;
 	}
 
-	///returns reversed list
-	KList friend Reverse(KList const& l) {
-		KList t(l);
-		KNode *p = t.fpFirst;
+	///reverses the list
+	void reverse() {
+		KNode *p = fpFirst;
 		KNode *origPrev = nullptr;
 		KNode *prev = origPrev;
 		KNode *nextP = nullptr;
@@ -115,14 +140,14 @@ public:
 			prev = p;
 			p = nextP;
 		}
-		t.fpFirst = p;
-		t.fppLast = &origPrev;
-		return t;
+		fpFirst = p;
+		fppLast = &origPrev;
 	}
 
+	///accesses the index's element
 	int& operator[](int index) {
-		if (index >= fSize || index < 0) {
-			throw runtime_error("list index is out of range");
+		if (index >= (int)fSize || index < 0) {
+			throw out_of_range("list index is out of range");
 		}
 		KNode *currentNode = fpFirst;
 		for (int i = 0;i < index;i++) {
@@ -131,16 +156,10 @@ public:
 		return currentNode->info;
 	}
 
-	void deletePointer(KNode *&p) {
-		if (p->next)
-			deletePointer(p->next);
-		else
-			delete p;
-	}
 
 	void erase(int index) {
-		if (index >= fSize || index < 0) {
-			throw runtime_error("list index is out of range");
+		if (index >= (int)fSize || index < 0) {
+			throw out_of_range("list index is out of range");
 		}
 		KNode *currentNode = fpFirst;
 		KNode *lastNode = nullptr;
@@ -159,14 +178,14 @@ public:
 			lastNode->next = currentNode->next;
 			currentNode->next = nullptr;
 		}
-		deletePointer(currentNode);
+		delete currentNode;
 		fSize--;
 	}
 
 	///inserts to be [index] element
 	void insert(int index, int info) {
 		if (index<0 || index>fSize) {
-			throw runtime_error("list index is out of range");
+			throw out_of_range("list index is out of range");
 		}
 		KNode *curr = fpFirst;
 		KNode *last = nullptr;
@@ -185,18 +204,19 @@ public:
 	}
 
 	///return the index of the first node with info equals value
-	int find_first(int value){
-		KNode *p=fpFirst;
-		int i=0;
+	int findFirst(int value) {
+		KNode *p = fpFirst;
+		int i = 0;
 		while (p) {
 			if (p->info == value) {
 				return i;
 			}
 			i++;
-			p=p->next;
+			p = p->next;
 		}
 		return -1;
 	}
+
 	///checks if first n elements of p1 are equal to first n elements of p2, use carefully, exceptions aren't prewritten
 	friend const pair<KNode*, bool> compareLists(KNode* p1, KNode* p2, int n) {
 		if (p2 == nullptr) {
@@ -225,34 +245,31 @@ public:
 		else
 			return{ nullptr,false };
 	}
+
+	///destructor
+	~KList() {
+		Clear();
+	}
 };
-KList input(const string& sFile, char diviser) {
+void input(KList &l, const string& sFile, char diviser) {
 	ifstream in(sFile);
 	string str;
-	getline(in,str,diviser);
+	getline(in, str, diviser);
 	stringstream ss;
-	ss<<str;
-	KList l;
+	ss << str;
 	if (in) {
 		int x;
 		while (ss >> x) {
-			l.PushBack(x);
+			l.pushBack(x);
 		}
 	}
-	return l;
 }
 
 int main() {
-	KList list1=input("input.txt",'%');
-	KList list2(list1);
-	for (int i = 0;i < list2.getSize();i++) {
-		cout<<list2[i]<<" ";
-	}
-	cout<<endl;
-	for (int i = 0;i < list2.getSize();i++) {
-		list2[i]=i;
-	}
-	cout<<list2;
+	KList list1;
+	input(list1, "input.txt", '%');
+	list1.popFront();
+	cout<<list1;
 	system("pause");
 	return 0;
 }
