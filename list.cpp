@@ -45,12 +45,7 @@ public:
 	KList(KList const& lst) :fpFirst(nullptr), fppLast(&fpFirst), fSize(0) {
 		Copy(lst.fpFirst);
 	}
-
-	~KList() {
-		deletePointer(fpFirst);
-		delete fppLast;
-	}
-
+	
 	///overloaded operator= , creates a copy of the given list and swaps this copy with our list; unused copy is erased automatically
 	KList operator=(KList const& l2) {
 		if (this == &l2) {
