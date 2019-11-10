@@ -2,6 +2,7 @@
 #include <fstream>
 #include <vector>
 #include <random>
+#include <sstream>
 #include <algorithm>
 #include <iterator>
 using namespace std;
@@ -26,13 +27,14 @@ private:
 	void Copy(KNode *p) {
 		while (p) {
 			this->PushBack(p->info);
-			p=p->next;
+			p = p->next;
 		}
 	}
+
 	///function that swaps pointers of list (t) and list (*this)
 	void Swap(KList &t) {
-		swap(this->fpFirst,t.fpFirst);
-		swap(this->fppLast,t.fppLast);
+		swap(this->fpFirst, t.fpFirst);
+		swap(this->fppLast, t.fppLast);
 	}
 
 public:
@@ -40,7 +42,7 @@ public:
 	KList() :fpFirst(nullptr), fppLast(&fpFirst), fSize(0) {}
 
 	///constructor, creates a copy of given list (lst)
-	KList(KList const& lst):fpFirst(nullptr),fppLast(&fpFirst),fSize(0) {
+	KList(KList const& lst) :fpFirst(nullptr), fppLast(&fpFirst), fSize(0) {
 		Copy(lst.fpFirst);
 	}
 
@@ -89,34 +91,36 @@ public:
 
 	///outputs all the infos from the list, separated with space ' '
 	friend ostream& operator<<(ostream &out, const KList &l) {
-		KNode *p=l.fpFirst;
+		const char DIVISER=' ';
+		KNode *p = l.fpFirst;
 		while (p) {
-			out<<p->info<<" ";
-			p=p->next;
+			out << p->info << DIVISER;
+			p = p->next;
 		}
 		return out;
 	}
+
 	///returns reversed list
 	KList friend Reverse(KList const& l) {
 		KList t(l);
-		KNode *p=t.fpFirst;
+		KNode *p = t.fpFirst;
 		KNode *origPrev = nullptr;
-		KNode *prev=origPrev;
-		KNode *nextP=nullptr;
+		KNode *prev = origPrev;
+		KNode *nextP = nullptr;
 		while (p) {
-			nextP=p->next;
-			p->next=prev;
-			if(nextP==nullptr)
+			nextP = p->next;
+			p->next = prev;
+			if (nextP == nullptr)
 				break;
-			prev=p;
-			p=nextP;
+			prev = p;
+			p = nextP;
 		}
-		t.fpFirst=p;
-		t.fppLast=&origPrev;
+		t.fpFirst = p;
+		t.fppLast = &origPrev;
 		return t;
 	}
 
-	int operator[](int index) {
+	int& operator[](int index) {
 		if (index >= fSize || index < 0) {
 			throw runtime_error("list index is out of range");
 		}
@@ -128,7 +132,7 @@ public:
 	}
 
 	void deletePointer(KNode *&p) {
-		if(p->next)
+		if (p->next)
 			deletePointer(p->next);
 		else
 			delete p;
@@ -149,16 +153,17 @@ public:
 		}
 		if (lastNode == nullptr) {
 			fpFirst = fpFirst->next;
-			currentNode->next=nullptr;
+			currentNode->next = nullptr;
 		}
 		else {
 			lastNode->next = currentNode->next;
-			currentNode->next=nullptr;
+			currentNode->next = nullptr;
 		}
 		deletePointer(currentNode);
 		fSize--;
 	}
 
+	///inserts to be [index] element
 	void insert(int index, int info) {
 		if (index<0 || index>fSize) {
 			throw runtime_error("list index is out of range");
@@ -174,11 +179,24 @@ public:
 			last->next = p;
 		}
 		else {
-			fpFirst=p;
+			fpFirst = p;
 		}
 		fSize++;
 	}
 
+	///return the index of the first node with info equals value
+	int find_first(int value){
+		KNode *p=fpFirst;
+		int i=0;
+		while (p) {
+			if (p->info == value) {
+				return i;
+			}
+			i++;
+			p=p->next;
+		}
+		return -1;
+	}
 	///checks if first n elements of p1 are equal to first n elements of p2, use carefully, exceptions aren't prewritten
 	friend const pair<KNode*, bool> compareLists(KNode* p1, KNode* p2, int n) {
 		if (p2 == nullptr) {
@@ -208,14 +226,33 @@ public:
 			return{ nullptr,false };
 	}
 };
-KList input(const string sFile) {
+KList input(const string& sFile, char diviser) {
 	ifstream in(sFile);
+	string str;
+	getline(in,str,diviser);
+	stringstream ss;
+	ss<<str;
 	KList l;
 	if (in) {
 		int x;
-		while (in >> x) {
+		while (ss >> x) {
 			l.PushBack(x);
 		}
 	}
 	return l;
+}
+
+int main() {
+	KList list1=input("input.txt",'%');
+	KList list2(list1);
+	for (int i = 0;i < list2.getSize();i++) {
+		cout<<list2[i]<<" ";
+	}
+	cout<<endl;
+	for (int i = 0;i < list2.getSize();i++) {
+		list2[i]=i;
+	}
+	cout<<list2;
+	system("pause");
+	return 0;
 }
