@@ -10,34 +10,8 @@ typedef string keyType;
 typedef int valueType;
 class HashNode {
 public:
-	HashNode() :_key(0), _value(0), _next(nullptr) {}
+	HashNode() :_key(""), _value(0), _next(nullptr) {}
 	HashNode(const keyType &k, const valueType &v) :_key(k), _value(v), _next(nullptr) {}
-
-	keyType getKey()const {
-		return _key;
-	}
-	
-	valueType getValue()const {
-		return _value;
-	}
-
-	HashNode* getNext()const {
-		return _next;
-	}
-
-	void setKey(const keyType& key) {
-		_key=key;
-	}
-
-	void setValue(const valueType& value) {
-		_value=value;
-	}
-	
-	void setNext(HashNode *next) {
-		_next=next;
-	}
-
-private:
 	keyType _key;
 	valueType _value;
 	HashNode *_next;
@@ -47,8 +21,9 @@ private:
 
 class HashTable {
 public:
+
 	///constructor
-	HashTable():size(0) {
+	HashTable() :_size(0) {
 		initNodes();
 	}
 	///constructor with another hash table
@@ -59,7 +34,7 @@ public:
 
 	///destructor
 	~HashTable() { clear(); }
-	
+
 	///overloaded operator= 
 	HashTable& operator=(const HashTable& other) {
 		if (this == &other) {
@@ -69,85 +44,102 @@ public:
 		swap(t);
 		return t;
 	}
-	/*
+
+	///modifies value by key
 	valueType& operator[](const keyType& key) {
-		int hash=getHashByKey(key);
-		HashNode *p=_nodes[hash];
-		while (p) {
-			p=p->getNext();
+		int hash = getHashByKey(key);
+		HashNode **p = &_nodes[hash];
+		bool was = 0;
+		while (*p) {
+			if ((*p)->_key == key) {
+				was = 1;
+				break;
+			}
+			p = &((*p)->_next);
 		}
-		p=new HashNode();
-		p->setKey(key);
-		re
+		if (!was) {
+			*p = new HashNode();
+			(*p)->_key = key;
+		}
+		return (*p)->_value;
 	}
 
-	valueType operator[](const keyType& key)const {
-		int hash = getHashByKey(key);
-		HashNode *p = _nodes[hash];
-		while (p) {
-			p = p->getNext();
+	///checks if hashTable is empty
+	bool isEmpty()const {
+		return (_size == 0);
+	}
+
+	///gets size
+	int getSize()const {
+		return _size;
+	}
+
+	void erase(const keyType& key) {
+		int hash=getHashByKey(key);
+		HashNode *p=_nodes[hash];
+		HashNode **last=&p;
+		while (*p) {
+			if ((*p)->_key == key) {
+				
+			}
 		}
-		p->setNext(new HashNode())
-	}*/
-	//istream& operator>>(istream& in, );
-	//ostream& operator<<(ostream& out, );
-	bool isEmpty();
-	int getSize();
-	int find();
-	int erase();
-	void swap(HashTable& other);
+	}
+
+
+	void swap(HashTable& other) {
+		std::swap(_size, other._size);
+		for (int i = 0;i < TABLE_SIZE;i++) {
+			std::swap(_nodes[i], other._nodes[i]);
+		}
+	}
+
 private:
 	const int TABLE_SIZE = 1000;
-	const int PRIME=237;
+	const int PRIME = 237;
 	vector<HashNode*> _nodes;
-	unsigned int size;
+	int _size;
 
 	///auxiliary function for constructor
 	void initNodes() {
-		_nodes.resize(TABLE_SIZE,nullptr);
+		_nodes.resize(TABLE_SIZE, nullptr);
 	}
 
 	///function that makes *this a copy of given hashtable
 	void copy(const HashTable& ht) {
 		for (int i = 0;i < TABLE_SIZE;i++) {
 			if (ht._nodes[i] != nullptr) {
-				HashNode *pHT=ht._nodes[i];
-				HashNode *pThis=this->_nodes[i];
+				HashNode *pHT = ht._nodes[i];
+				HashNode *pThis = this->_nodes[i];
 				while (pHT) {
-					pThis=new HashNode(pHT->getKey(),pHT->getValue());
-					pHT=pHT->getNext();
-					pThis=pThis->getNext();
+					pThis = new HashNode(pHT->_key, pHT->_value);
+					pHT = pHT->_next;
+					pThis = pThis->_next;
 				}
 			}
 		}
 	}
-	
+
+	///clears the hash table
 	void clear() {
 		for (int i = 0;i < TABLE_SIZE;i++) {
-			HashNode *p=_nodes[i];
+			HashNode *p = _nodes[i];
 			while (p) {
-				HashNode *t=p;
-				p=p->getNext();
+				HashNode *t = p;
+				p = p->_next;
 				delete t;
 			}
 		}
 	}
 
-	void swap(HashTable& other) {
-		swap(size,other.size);
-		for (int i = 0;i < TABLE_SIZE;i++) {
-			swap(_nodes[i],other._nodes[i]);
-		}
-	}
-
+	///returns the hash by key
 	int getHashByKey(keyType const& key)const {
-		int hash=0;
-		int currPrime=1;
+		int hash = 0;
+		int currPrime = 1;
 		for (auto it : key) {
-			hash+=it*currPrime;
-			currPrime*=currPrime;
-			hash%=TABLE_SIZE;
-			currPrime%=TABLE_SIZE;
+			hash += it*currPrime;
+			currPrime *= currPrime;
+			hash %= TABLE_SIZE;
+			currPrime %= TABLE_SIZE;
 		}
 		return hash;
 	}
@@ -157,5 +149,13 @@ private:
 ///=============================================================================================================================
 
 int main() {
-
+	HashTable table;
+	table["a"] = 1;
+	cout << table["a"]<<"\n";
+	table["a"] = 3;
+	table["a"]=1;
+	table["b"] = 2;
+	table["b"]=31;
+	cout << table["a"] << " " << table["b"] << "\n";
+	return 0;
 }
