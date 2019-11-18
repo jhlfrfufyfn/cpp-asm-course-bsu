@@ -81,13 +81,13 @@ public:
 		return t;
 	}
 
-	inline const RNum operator*(RNum const& r2)const {
+	inline const RNum operator*(int r2)const {
 		RNum t = *this * RNum(r2);
 		t.Normalize();
 		return t;
 	}
 
-	inline const RNum operator/(RNum const& r2)const {
+	inline const RNum operator/(int r2)const {
 		RNum t = *this / RNum(r2);
 		t.Normalize();
 		return t;
@@ -179,26 +179,33 @@ public:
 	}
 
 
+	friend inline RNum const  operator + (int a, RNum const& r2);
+
+	friend inline RNum const  operator * (int a, RNum const& r2);
+
+	friend inline RNum const  operator - (int a, RNum const& r2);
+
+	friend inline RNum const  operator / (int a, RNum const& r2);
 };
 
-inline KRat const  operator + (int a, KRat const& r2)
+inline const RNum  operator + (int a, RNum const& r2)
 {
-	return KRat(a * r2.fDenom + r2.fNum, r2.fDenom);
+	return RNum(a)+r2;
 }
 
-inline KRat  operator * (int a, const KRat& r2)
+inline const RNum  operator * (int a, const RNum& r2)
 {
-	return KRat(a*r2.fNum, r2.fDenom);
+	return RNum(a)*r2;
 }
 
-inline KRat const  operator - (int a, KRat const& r2)
+inline const RNum operator - (int a, RNum const& r2)
 {
-	return KRat(a * r2.fDenom + r2.fNum, r2.fDenom);
+	return RNum(a)-r2;
 }
 
-inline KRat const  operator / (int a, KRat const& r2)
+inline const RNum operator / (int a, RNum const& r2)
 {
-	return KRat(a * r2.fDenom + r2.fNum, r2.fDenom);
+	return RNum(a)/r2;
 }
 
 
@@ -214,6 +221,11 @@ int main() {
 	A = B;
 	cout << "A= " << A << "\n";
 	cout << "B= " << B << "\n";
+	cout << "A + 5 = " << 5 + A << "\n";
+	cout << "A * 5 = " << 5 * A << "\n";
+	cout << "A - 5 = " << 5 - A << "\n";
+	cout << "A / 5 = " << 5 / A << "\n";
+	cout << double(A)<<"\n";
 	system("pause");
 	return 0;
 }
