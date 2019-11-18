@@ -75,14 +75,21 @@ public:
 	}
 
 	void erase(const keyType& key) {
-		int hash=getHashByKey(key);
-		HashNode *p=_nodes[hash];
-		HashNode **last=&p;
+		int hash = getHashByKey(key);
+		HashNode **p = &_nodes[hash];
+		HashNode **last = nullptr;
+		HashNode **nodeErased = nullptr;
 		while (*p) {
 			if ((*p)->_key == key) {
-				
+				nodeErased = p;
+				if (last != nullptr)
+					(*last)->_next = (*p)->_next;
+				break;
 			}
+			last = p;
+			p = &((*p)->_next);
 		}
+		*p=nullptr;
 	}
 
 
@@ -151,11 +158,14 @@ private:
 int main() {
 	HashTable table;
 	table["a"] = 1;
-	cout << table["a"]<<"\n";
+	cout << table["a"] << "\n";
 	table["a"] = 3;
-	table["a"]=1;
+	table["a"] = 1;
 	table["b"] = 2;
-	table["b"]=31;
+	table["b"] = 31;
 	cout << table["a"] << " " << table["b"] << "\n";
+	table.erase("a");
+	cout << table["a"] << " " << table["b"] << "\n";
+	cout<<table["a"]<<"\n";
 	return 0;
 }
