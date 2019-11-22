@@ -3,6 +3,7 @@
 #include <vector>
 using namespace std;
 int currFi, currFi1, currFi2, currSum, Xi;
+///don't work if x==0, erase global vars
 int funcP1(int n, int x) {
 	__asm {
 		///initialize x^n +
@@ -104,17 +105,17 @@ int funcP2(int n, int x) {
 	}
 }
 int checkCpp1(int n, int x) {
-	int p1=0;
-	int currX=1;
-	vector<int> f(n+1);
-	f[0]=1;
-	f[1]=1;
+	int p1 = 0;
+	int currX = 1;
+	vector<int> f(n + 1);
+	f[0] = 1;
+	f[1] = 1;
 	for (int i = 2;i <= n;i++) {
-		f[i]=f[i-1]+f[i-2];
+		f[i] = f[i - 1] + f[i - 2];
 	}
 	for (int i = 0;i <= n;i++) {
-		p1+=f[n-i]*currX;
-		currX*=x;
+		p1 += f[n - i] * currX;
+		currX *= x;
 	}
 	return p1;
 }
@@ -138,8 +139,8 @@ int main()
 	int n, x;
 	cout << "Enter n,x:\n ";
 	cin >> n >> x;
-	if(checkCpp1(n,x)==funcP1(n,x)&&checkCpp2(n,x)==funcP2(n,x))
-		cout<<"Ok\n";
+	if (checkCpp1(n, x) == funcP1(n, x) && checkCpp2(n, x) == funcP2(n, x))
+		cout << "Ok\n";
 	cout << "p1 = " << funcP1(n, x) << "\np2 = " << funcP2(n, x) << "\n";
 	system("pause");
 	return 0;
