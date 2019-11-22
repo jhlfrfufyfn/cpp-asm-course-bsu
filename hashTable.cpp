@@ -16,6 +16,8 @@ public:
 	valueType _value;
 	HashNode *_next;
 };
+///реализовать find
+///написать свое расширение памяти поддерживая коэффицент заполнения
 
 ///=============================================================================================================================
 
@@ -37,12 +39,11 @@ public:
 
 	///overloaded operator= 
 	HashTable& operator=(const HashTable& other) {
-		if (this == &other) {
-			return *this;
+		if (this != &other) {
+			HashTable t(other);
+			swap(t);
 		}
-		HashTable t(other);
-		swap(t);
-		return t;
+		return *this;
 	}
 
 	///modifies value by key
@@ -89,7 +90,7 @@ public:
 			last = p;
 			p = &((*p)->_next);
 		}
-		*p=nullptr;
+		*p = nullptr;
 	}
 
 
@@ -166,6 +167,6 @@ int main() {
 	cout << table["a"] << " " << table["b"] << "\n";
 	table.erase("a");
 	cout << table["a"] << " " << table["b"] << "\n";
-	cout<<table["a"]<<"\n";
+	cout << table["a"] << "\n";
 	return 0;
 }
