@@ -2,16 +2,19 @@
 #include <algorithm>
 #include <vector>
 using namespace std;
-int currFi, currFi1, currFi2, currSum, Xi;
-///don't work if x==0, erase global vars
-int funcP1(int n, int x) {
+///(1,1) (1,0) (0,x)
+int funcP1(int n, int x,int currFi1,int currFi2) {
 	__asm {
 		///initialize x^n +
 		///initialize f0,f1 +
 		///initialize sum before 1 including +
 		///write a cycle +
-		mov currSum, 0;
-		mov Xi, 1;
+		///registers used: ecx, eax, edx
+		///unused: ebx, edi,esi
+		push esi;
+		push edi;
+		mov ebx, 0;
+		mov edi, 1;
 		mov currFi1, 1;
 		mov currFi2, 1;
 		mov ecx, n;
@@ -19,89 +22,120 @@ int funcP1(int n, int x) {
 	c1:
 		mul x;
 		loop c1;
-		mov Xi, eax;
-		add currSum, eax;
-		mov eax, Xi;
+		mov edi, eax;
+		add ebx, eax;
+		mov eax, edi;
 		mov ecx, x;
 		mov edx, 0;
+		cmp ecx,0;
+		je MARK1;
 		div ecx;
-		mov Xi, eax;
-		add currSum, eax;
+	MARK1:
+		mov edi, eax;
+		add ebx, eax;
 		mov ecx, currFi1;
-		mov currFi, ecx;
+		mov esi, ecx;
 		mov ecx, currFi2;
-		add currFi, ecx;
+		add esi, ecx;
 		mov ecx, n;
 		dec ecx;
 	c2:
-		///recalc Xi +
-		///process currSum +
-		///recalc currFi(1)(2) +
+		///recalc edi +
+		///process ebx +
+		///recalc esi(1)(2) +
 		push ecx;
 		mov ecx, x;
-		mov eax, Xi;
+		mov eax, edi;
 		mov edx, 0;
+		cmp ecx,0;
+		je MARK2;
 		div ecx;
+	MARK2:
 		pop ecx;
-		mov Xi, eax;
-		mul currFi;
-		add currSum, eax;
-		push currFi;
+		mov edi, eax;
+		mul esi;
+		add ebx, eax;
+		push esi;
 		push ecx;
 		mov ecx, currFi1;
 		mov currFi2, ecx;
-		add currFi, ecx;
+		add esi, ecx;
 		pop ecx;
 		pop currFi1;
+		cmp ecx,0;
+		je MARK4;
 		loop c2;
-		mov eax, currSum;
+	MARK4:
+		cmp x,0;
+		je MARK6;
+		mov eax, ebx;
+		jmp MARK7;
+	MARK6:
+		mov eax,currFi1;
+	MARK7:
+		pop edi;
+		pop esi;
 	}
 }
-int funcP2(int n, int x) {
+int funcP2(int n, int x, int currFi1, int currFi2) {
 	__asm {
 		///initialize x^0 +
 		///initialize f0,f1 +
 		///initialize sum before 1 including +
-		///write a cycle +		
-		mov currSum, 0;
-		mov Xi, 1;
+		///write a cycle +	
+		push esi;
+		push edi;
+		cmp n,1;
+		je MARK6;
+		mov ebx, 0;
+		mov edi, 1;
 		mov currFi1, 1;
 		mov currFi2, 1;
 		mov eax, 1;
-		mov Xi, eax;
-		add currSum, eax;
-		mov eax, Xi;
+		mov edi, eax;
+		add ebx, eax;
+		mov eax, edi;
 		mov ecx, x;
 		mul ecx;
-		mov Xi, eax;
-		add currSum, eax;
+		mov edi, eax;
+		add ebx, eax;
 		mov ecx, currFi1;
-		mov currFi, ecx;
+		mov esi, ecx;
 		mov ecx, currFi2;
-		add currFi, ecx;
+		add esi, ecx;
 		mov ecx, n;
 		dec ecx;
 	c2:
-		///recalc Xi +
-		///process currSum +
-		///recalc currFi(1)(2)+
+		///recalc edi +
+		///process ebx +
+		///recalc esi(1)(2)+
 		push ecx;
 		mov ecx, x;
-		mov eax, Xi;
+		mov eax, edi;
 		mul ecx;
 		pop ecx;
-		mov Xi, eax;
-		mul currFi;
-		add currSum, eax;
-		push currFi;
+		mov edi, eax;
+		mul esi;
+		add ebx, eax;
+		push esi;
 		push ecx;
 		mov ecx, currFi1;
 		mov currFi2, ecx;
-		add currFi, ecx;
+		add esi, ecx;
 		pop ecx;
 		pop currFi1;
+		cmp ecx,0;
+		je MARK5;
 		loop c2;
-		mov eax, currSum;
+	MARK5:
+		mov eax, ebx;
+		jmp MARK7;
+	MARK6:
+		mov eax,1;
+		add eax,x;
+	MARK7:
+		pop edi;
+		pop esi;
 	}
 }
 int checkCpp1(int n, int x) {
@@ -109,7 +143,8 @@ int checkCpp1(int n, int x) {
 	int currX = 1;
 	vector<int> f(n + 1);
 	f[0] = 1;
-	f[1] = 1;
+	if(n!=0)
+		f[1] = 1;
 	for (int i = 2;i <= n;i++) {
 		f[i] = f[i - 1] + f[i - 2];
 	}
@@ -124,6 +159,7 @@ int checkCpp2(int n, int x) {
 	int currX = 1;
 	vector<int> f(n + 1);
 	f[0] = 1;
+	if(n!=0)
 	f[1] = 1;
 	for (int i = 2;i <= n;i++) {
 		f[i] = f[i - 1] + f[i - 2];
@@ -139,9 +175,10 @@ int main()
 	int n, x;
 	cout << "Enter n,x:\n ";
 	cin >> n >> x;
-	if (checkCpp1(n, x) == funcP1(n, x) && checkCpp2(n, x) == funcP2(n, x))
+	if (checkCpp1(n, x) == funcP1(n, x,1,1) && checkCpp2(n, x) == funcP2(n, x,1,1))
 		cout << "Ok\n";
-	cout << "p1 = " << funcP1(n, x) << "\np2 = " << funcP2(n, x) << "\n";
+	cout << "p1 = " << checkCpp1(n, x) << "\np2 = " << checkCpp2(n, x) << "\n";
+	cout << "p1 = " << funcP1(n, x,1,1) << "\np2 = " << funcP2(n, x,1,1) << "\n";
 	system("pause");
 	return 0;
 }
