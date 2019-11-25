@@ -10,15 +10,15 @@ public:
 	info_type _info;
 	BNode<info_type> *_left;
 	BNode<info_type> *_right;
-	BNode<info_type> *_parent;
 public:
-	BNode<info_type>() :_info(0), _left(nullptr), _right(nullptr), _parent(nullptr) {}
-	BNode<info_type>(int info) :_info(), _left(nullptr), _right(nullptr), _parent(nullptr) {}
-	BNode<info_type>(int info, BNode<info_type> *left, BNode<info_type> *right, BNode<info_type> *parent) :_info(info), _left(left), _right(right), _parent(parent) {}
+	BNode<info_type>() : _info(0), _left(nullptr), _right(nullptr) {}
+	BNode<info_type>(int info) : _info(info), _left(nullptr), _right(nullptr) {}
+	BNode<info_type>(int info, BNode<info_type> *left, BNode<info_type> *right) : _info(info), _left(left), _right(right) {}
 };
 
 template<typename info_type>
 class BTree {
+public:
 	BTree<info_type>();
 	bool insert(info_type info);
 	bool erase(info_type info);
@@ -32,36 +32,33 @@ class BTree {
 private:
 	BNode<info_type>* root;
 	size_t size;
-	bool insert(BNode<info_type>* t, info_type info);
-	bool erase(BNode<info_type>* t, info_type info);
-	bool search(BNode<info_type>* t, info_type info);
-	void preOrder(BNode<info_type> *t, std::ostream& out);
-	void inOrder(BNode<info_type> *t, std::ostream& out);
-	void postOrder(BNode<info_type> *t, std::ostream& out);
-	size_t height(BNode<info_type> *t);
+	bool insert(BNode<info_type> *& t, info_type info);
+	bool erase(BNode<info_type> *& t, info_type info);
+	bool search(BNode<info_type> * t, info_type info);
+	void preOrder(BNode<info_type> * t, std::ostream& out);
+	void inOrder(BNode<info_type> * t, std::ostream& out);
+	void postOrder(BNode<info_type> * t, std::ostream& out);
+	size_t height(BNode<info_type> * t);
 	BNode<info_type>* createNode(info_type info);
 	inline bool isReal(BNode<info_type> *p);
-	int minimum(BNode<info_type> *t);
+	int minimum(BNode<info_type> * t);
 };
 
 template<typename info_type>
-BTree<info_type>::BTree<info_type>():root(nullptr){}
+BTree<info_type>::BTree() : root(nullptr) {}
 
 template<typename info_type>
-bool BTree<info_type>::insert(info_type info)
-{
+bool BTree<info_type>::insert(info_type info) {
 	return insert(root, info);
 }
 
 template<typename info_type>
-bool BTree<info_type>::erase(info_type info)
-{
+bool BTree<info_type>::erase(info_type info) {
 	return erase(root, info);
 }
 
 template<typename info_type>
-bool BTree<info_type>::search(info_type info)
-{
+bool BTree<info_type>::search(info_type info) {
 	return search(root, info);
 }
 
@@ -86,8 +83,7 @@ size_t BTree<info_type>::getSize() {
 }
 
 template<typename info_type>
-size_t BTree<info_type>::height()
-{
+size_t BTree<info_type>::height() {
 	return height(root);
 }
 
@@ -97,8 +93,7 @@ bool BTree<info_type>::empty() {
 }
 
 template<typename info_type>
-bool BTree<info_type>::insert(BNode<info_type> * t, info_type info)
-{
+bool BTree<info_type>::insert(BNode<info_type> *& t, info_type info) {
 	if (t == nullptr) {
 		t = createNode(info);
 		return true;
@@ -115,8 +110,7 @@ bool BTree<info_type>::insert(BNode<info_type> * t, info_type info)
 }
 
 template<typename info_type>
-bool BTree<info_type>::erase(BNode<info_type> * t, info_type info)
-{
+bool BTree<info_type>::erase(BNode<info_type> *& t, info_type info) {
 	if (t == nullptr)
 		return false;
 	if (t->_info < info)
@@ -131,84 +125,75 @@ bool BTree<info_type>::erase(BNode<info_type> * t, info_type info)
 		else if (t->_left != nullptr&&t->_right == nullptr)
 			t = t->_left;
 		else {
-			t->_info=minimum(t->_right);
-			erase(t->_right,t->_info);
+			t->_info = minimum(t->_right);
+			erase(t->_right, t->_info);
 		}
-		delete t;
 		return true;
 	}
 }
 
 template<typename info_type>
-bool BTree<info_type>::search(BNode<info_type> * t, info_type info)
-{
-	if(t==nullptr)
+bool BTree<info_type>::search(BNode<info_type> * t, info_type info) {
+	if (t == nullptr)
 		return false;
 	else if (t->_info < info) {
-		return search(t->_right,info);
+		return search(t->_right, info);
 	}
 	else if (t->_info > info) {
-		return search(t->_left,info);
+		return search(t->_left, info);
 	}
 	else
 		return true;
 }
 
 template<typename info_type>
-void BTree<info_type>::preOrder(BNode<info_type> * t, std::ostream & out)
-{
+void BTree<info_type>::preOrder(BNode<info_type> * t, std::ostream & out) {
 	if (t) {
-		out<<t->info<<" ";
-		preOrder(t->_left,out);
-		preOrder(t->_right,out);
+		out << t->_info << " ";
+		preOrder(t->_left, out);
+		preOrder(t->_right, out);
 	}
 }
 
 template<typename info_type>
-void BTree<info_type>::inOrder(BNode<info_type> * t, std::ostream & out)
-{
+void BTree<info_type>::inOrder(BNode<info_type> * t, std::ostream & out) {
 	if (t) {
-		inOrder(t->_left,out);
-		out<<t->_info<<" ";
-		inOrder(t->_right,out);
+		inOrder(t->_left, out);
+		out << t->_info << " ";
+		inOrder(t->_right, out);
 	}
 }
 
 template<typename info_type>
-void BTree<info_type>::postOrder(BNode<info_type> * t, std::ostream & out)
-{
+void BTree<info_type>::postOrder(BNode<info_type> * t, std::ostream & out) {
 	if (t) {
-		postOrder(t->_left,out);
-		postOrder(t->_right,out);
-		out<<t->_info<<" ";
+		postOrder(t->_left, out);
+		postOrder(t->_right, out);
+		out << t->_info << " ";
 	}
 }
 
 template<typename info_type>
-size_t BTree<info_type>::height(BNode<info_type> * t)
-{
+size_t BTree<info_type>::height(BNode<info_type> * t) {
 	if (!t)
 		return 0;
 	else
-		return size_t(std::max(height(t->_left),height(t->_right))+1);
+		return size_t(std::max(height(t->_left), height(t->_right)) + 1);
 }
 
 template<typename info_type>
-BNode<info_type> * BTree<info_type>::createNode(info_type info)
-{
-	BNode<info_type> newNode* = new BNode<info_type>(info);
-	return info;
+BNode<info_type> * BTree<info_type>::createNode(info_type info) {
+	BNode<info_type> *newNode = new BNode<info_type>(info);
+	return newNode;
 }
 
 template<typename info_type>
-inline bool BTree<info_type>::isReal(BNode<info_type> * p)
-{
+inline bool BTree<info_type>::isReal(BNode<info_type> * p) {
 	return p != nullptr;
 }
 
 template<typename info_type>
-int BTree<info_type>::minimum(BNode<info_type> * t)
-{
+int BTree<info_type>::minimum(BNode<info_type> * t) {
 	if (t->_left == nullptr)
 		return t->_info;
 	else
@@ -218,6 +203,7 @@ int BTree<info_type>::minimum(BNode<info_type> * t)
 
 int main() {
 	BTree<int> tree;
-	for(int i:{1,2,3,4,5,6,7})
-		tree.insert(i);
+
+	system("pause");
+	return 0;
 }
