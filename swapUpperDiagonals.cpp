@@ -1,9 +1,10 @@
+
 #include <iostream>
 #include <vector>
 using namespace std;
 typedef long long ll;
 ///_delspec naked
-void swapTask(int **a, int n, int m) {
+void __declspec(naked) swapTask(int **a, int n, int m) {
 	__asm {
 		/*
 		mov ebx,a;
@@ -21,21 +22,24 @@ void swapTask(int **a, int n, int m) {
 		///цикл по строкам
 		///цикл по столбцам
 		///поменять в строке i элементы a[i][i] и a[i][n-i-1]
+		push ebp;
+		mov ebp,esp;
+		sub esp,20;
 		mov eax, 0;///using for swap
 		mov ebx, 0;///adress
-		mov ecx, n;///counter of a row
+		mov ecx, [ebp + 0x0C];///counter of a row
 		mov edx, 0;///shift of a column
 		mov esi, 4;///shift of a row;
-		mov ebx, a;
+		mov ebx, [ebp + 0x08];
 		mov edi, 0;
-		mov ebx, a;
+		mov ebx, [ebp + 0x08];
 		mov ebx, [ebx];
 	loop1:
 		push ecx;
 		mov edx, 0;
 		mov eax, 0;
 		///calculate current second index;
-		mov ecx, m;
+		mov ecx, [ebp + 0x10];
 		sub ecx, 1;
 		sub ecx, edi;
 		///
@@ -47,13 +51,25 @@ void swapTask(int **a, int n, int m) {
 		pop ecx;
 		jle exitCycle;
 		inc edi;
-		mov ebx, a;
+		mov ebx, [ebp + 0x08];
 		add ebx, esi;
 		mov ebx, [ebx];
 		add esi, 4;
 		loop loop1;
 	exitCycle:
-		nop;
+		add esp,20;
+		pop ebp;
+		ret;
+	}
+}
+
+void callSwapTask(int **a, int n, int m) {
+	__asm {
+		push m;
+		push n;
+		push a;
+		call swapTask;
+		add esp,0Ch;
 	}
 }
 
@@ -80,7 +96,7 @@ signed main() {
 			cout << a[i][j] << " ";
 		cout << endl;
 	}
-	swapTask(a, n, m);
+	callSwapTask(a, n, m);
 	cout << endl;
 	for (int i = 0;i < n;i++) {
 		for (int j = 0;j<m;j++)
