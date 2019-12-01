@@ -115,6 +115,8 @@ public:
 	}
 
 	inline RNum& operator=(RNum const& r2) {
+		(*this)._num=r2._num;
+		(*this)._denum=r2._denum;
 		return *this;
 	}
 
@@ -157,6 +159,34 @@ public:
 		*this = *this / RNum(r2);
 		return *this;
 	}
+
+
+
+	inline RNum& operator++() {
+		*this += 1;
+		Normalize();
+		return *this;
+	}
+
+	inline RNum& operator--() {
+		*this -= 1;
+		Normalize();
+		return *this;
+	}
+
+	inline RNum operator++(int) {
+		RNum temp(*this);
+		++(*this);
+		return temp;
+	}
+
+	inline RNum operator--(int) {
+		RNum temp(*this);
+		--(*this);
+		return temp;
+	}
+
+
 
 	bool const operator<(RNum const& r2)const {
 		long long comDenom = this->_denum*r2._denum;
@@ -261,22 +291,24 @@ inline RNumProxyDenum::operator int() {
 int main() {
 	RNum A, B;
 	cin >> A >> B;
-	cout << "A+B= " << A + B << "\n";
-	cout << "A*B= " << A*B << "\n";
-	cout << "A/B= " << A / B << "\n";
-	cout << "A<B= " << (A < B) << "\n";
-	cout << "A=B= " << (A == B) << "\n";
-	cout << "A>B= " << (A > B) << "\n";
+	cout << "A++ =" << A++ << "\n";
+	cout << "A =  " << A << "\n";
+	cout << "++A = " << ++A  << "\n";
+	cout << "A = " << A << "\n";
+	cout << "A+B = " << A + B << "\n";
+	cout << "A*B = " << A*B << "\n";
+	cout << "A/B = " << A / B << "\n";
+	cout << "A<B = " << (A < B) << "\n";
+	cout << "A==B = " << (A == B) << "\n";
+	cout << "A>B = " << (A > B) << "\n";
 	A = B;
-	cout << "A= " << A << "\n";
-	cout << "B= " << B << "\n";
-	cout << "A + 5 = " << 5 + A << "\n";
-	cout << "A * 5 = " << 5 * A << "\n";
-	cout << "A - 5 = " << 5 - A << "\n";
-	cout << "A / 5 = " << 5 / A << "\n";
-	cout << double(A) << "\n";
-	A.Denumenator()=0;
-	cout<< A << " " << double(A) <<"\n";
+	cout << "A = " << A << "\n";
+	cout << "B = " << B << "\n";
+	cout << "5 + A = " << 5 + A << "\n";
+	cout << "5 * A = " << 5 * A << "\n";
+	cout << "5 - A = " << 5 - A << "\n";
+	cout << "5 / A = " << 5 / A << "\n";
+	cout << A << " = " << double(A) << "\n";
 	system("pause");
 	return 0;
 }
