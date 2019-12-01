@@ -1,9 +1,11 @@
 #include <iostream>
 #include <fstream>
 #include <vector>
+#include <string>
 #include <random>
 #include <algorithm>
 #include <iterator>
+#include <unordered_map>
 using namespace std;
 ///============================================================================================================================
 typedef string keyType;
@@ -16,8 +18,6 @@ public:
 	valueType _value;
 	HashNode *_next;
 };
-///реализовать find
-///написать свое расширение памяти поддерживая коэффицент заполнения
 
 ///=============================================================================================================================
 
@@ -25,148 +25,297 @@ class HashTable {
 public:
 
 	///constructor
-	HashTable() :_size(0) {
-		initNodes();
-	}
+	HashTable();
+
 	///constructor with another hash table
-	HashTable(const HashTable& other) {
-		HashTable();
-		copy(other);
-	}
+	HashTable(const HashTable& other);
 
 	///destructor
 	~HashTable() { clear(); }
 
 	///overloaded operator= 
-	HashTable& operator=(const HashTable& other) {
-		if (this != &other) {
-			HashTable t(other);
-			swap(t);
-		}
-		return *this;
-	}
+	HashTable& operator=(const HashTable& other);
 
 	///modifies value by key
-	valueType& operator[](const keyType& key) {
-		int hash = getHashByKey(key);
+	valueType& operator[](const keyType& key);
+
+	///checks if hashTable is empty
+	bool isEmpty()const;
+
+	///gets size
+	int getSize()const;
+
+	///returns flag if there is the key in the table
+	bool find(const keyType& key) const;
+
+	///erases element with key if exists
+	void erase(const keyType& key);
+
+	///swaps two tables
+	void swap(HashTable& other);
+
+private:
+	size_t TABLE_SIZE = 100;			///initial size of the table
+
+	const int PRIME = 237;			///prime number used for hashing
+
+	///coefficient, used for recalculating of the TABLE_SIZE : if the real size is bigger 
+	/// than TABLE_SIZE * EXPANDCOEF , than we make out table two times bigger
+	const size_t EXPANDCOEF = 15;
+
+	vector<HashNode*> _nodes;		///lists of the hashTable
+
+	size_t _size;					///number of elements in hashtable
+
+	///auxiliary function for constructor
+	void initNodes();
+
+	///function that makes *this a copy of given hashtable
+	void copy(const HashTable& ht);
+
+	///clears the hash table
+	void clear();
+
+	///calculates hash by key
+	int getHashByKey(keyType const& key)const;
+
+	///checks if rebuild is needed
+	void checkRebuild();
+
+	///expanses or squeezes the table
+	void rebuildTable(bool);
+};
+///=============================================================================================================================
+HashTable::HashTable() :_size(0)
+{
+	initNodes();
+}
+
+HashTable::HashTable(const HashTable & other)
+{
+	HashTable();
+	copy(other);
+}
+
+HashTable & HashTable::operator=(const HashTable & other)
+{
+	if (this != &other) {
+		HashTable t(other);
+		swap(t);
+	}
+	return *this;
+}
+
+valueType & HashTable::operator[](const keyType & key)
+{
+	checkRebuild();
+	int hash = getHashByKey(key);
+	HashNode **p = &_nodes[hash];
+	bool was = 0;
+	while (*p) {
+		if ((*p)->_key == key) {
+			was = 1;
+			break;
+		}
+		p = &((*p)->_next);
+	}
+	if (!was) {
+		_size++;
+		*p = new HashNode();
+		(*p)->_key = key;
+	}
+	return (*p)->_value;
+}
+
+bool HashTable::isEmpty() const
+{
+	return (_size == 0);
+}
+
+int HashTable::getSize() const
+{
+	return _size;
+}
+
+bool HashTable::find(const keyType & key) const
+{
+	int hash = getHashByKey(key);
+	HashNode *p = _nodes[hash];
+	while (p) {
+		if (p->_key == key) {
+			return true;
+		}
+		p = p->_next;
+	}
+	return false;
+}
+
+void HashTable::erase(const keyType & key)
+{
+	checkRebuild();
+	int hash = getHashByKey(key);
+	HashNode **p = &_nodes[hash];
+	HashNode **last = nullptr;
+	HashNode *nodeErased = nullptr;
+	while (*p) {
+		if ((*p)->_key == key) {
+			nodeErased = *p;
+			*p = (*p)->_next;
+			_size--;
+			break;
+		}
+		last = p;
+		p = &((*p)->_next);
+	}
+	delete nodeErased;
+}
+
+void HashTable::swap(HashTable & other)
+{
+	std::swap(_size, other._size);
+	for (int i = 0;i < TABLE_SIZE;i++) {
+		std::swap(_nodes[i], other._nodes[i]);
+	}
+}
+
+void HashTable::initNodes()
+{
+	_nodes.resize(TABLE_SIZE, nullptr);
+}
+
+void HashTable::copy(const HashTable & ht)
+{
+	_size = ht._size;
+	for (int i = 0;i < TABLE_SIZE;i++) {
+		if (ht._nodes[i] != nullptr) {
+			HashNode *pHT = ht._nodes[i];
+			HashNode *pThis = this->_nodes[i];
+			while (pHT) {
+				pThis = new HashNode(pHT->_key, pHT->_value);
+				pHT = pHT->_next;
+				pThis = pThis->_next;
+			}
+		}
+	}
+}
+
+void HashTable::clear()
+{
+	_size = 0;
+	for (int i = 0;i < TABLE_SIZE;i++) {
+		HashNode *p = _nodes[i];
+		while (p) {
+			HashNode *t = p;
+			p = p->_next;
+			delete t;
+		}
+		_nodes[i] = nullptr;
+	}
+}
+
+int HashTable::getHashByKey(keyType const & key) const
+{
+	int hash = 0;
+	int currPrime = 1;
+	for (auto it : key) {
+		hash += it*currPrime;
+		currPrime *= PRIME;
+		hash %= TABLE_SIZE;
+		currPrime %= TABLE_SIZE;
+	}
+	return hash;
+}
+
+void HashTable::checkRebuild()
+{
+	if (_size > TABLE_SIZE*EXPANDCOEF) {
+		rebuildTable(1);
+	}
+	if (_size < TABLE_SIZE && TABLE_SIZE >= 200) {
+		rebuildTable(0);
+	}
+}
+
+void HashTable::rebuildTable(bool b)			///if b == 0 then squeeze, else expand
+{
+	vector<pair<keyType, valueType> > vec;
+	for (int i = 0;i < TABLE_SIZE;i++) {
+		HashNode *p = _nodes[i];
+		while (p) {
+			vec.push_back({ p->_key,p->_value });
+			p = p->_next;
+		}
+	}
+	clear();
+	if(b)
+		TABLE_SIZE *= 2;
+	else {
+		TABLE_SIZE /= 2;
+	}
+	_nodes.resize(TABLE_SIZE);
+	for (const auto &it : vec) {
+		int hash = getHashByKey(it.first);
 		HashNode **p = &_nodes[hash];
 		bool was = 0;
 		while (*p) {
-			if ((*p)->_key == key) {
+			if ((*p)->_key == it.first) {
 				was = 1;
 				break;
 			}
 			p = &((*p)->_next);
 		}
 		if (!was) {
+			_size++;
 			*p = new HashNode();
-			(*p)->_key = key;
+			(*p)->_key = it.first;
+			(*p)->_value = it.second;
 		}
-		return (*p)->_value;
 	}
+}
+///=============================================================================================================================
 
-	///checks if hashTable is empty
-	bool isEmpty()const {
-		return (_size == 0);
-	}
 
-	///gets size
-	int getSize()const {
-		return _size;
-	}
 
-	void erase(const keyType& key) {
-		int hash = getHashByKey(key);
-		HashNode **p = &_nodes[hash];
-		HashNode **last = nullptr;
-		HashNode **nodeErased = nullptr;
-		while (*p) {
-			if ((*p)->_key == key) {
-				nodeErased = p;
-				if (last != nullptr)
-					(*last)->_next = (*p)->_next;
-				break;
+
+
+
+int main() {
+	std::unordered_map<string, int> mp;
+	HashTable table;
+	for (char c1 = 'a';c1 <= 'z';c1++) {
+		for (char c2 = 'a';c2 <= 'z';c2++) {
+			for (char c3 = 'a';c3 <= 'z';c3++) {
+				string s = string(1, c1) + string(1, c2) + string(1, c3);
+				mp[s] = (int)c1 + c2;
+				table[s] = (int)c1 + c2;
 			}
-			last = p;
-			p = &((*p)->_next);
-		}
-		*p = nullptr;
-	}
-
-
-	void swap(HashTable& other) {
-		std::swap(_size, other._size);
-		for (int i = 0;i < TABLE_SIZE;i++) {
-			std::swap(_nodes[i], other._nodes[i]);
 		}
 	}
 
-private:
-	const int TABLE_SIZE = 1000;
-	const int PRIME = 237;
-	vector<HashNode*> _nodes;
-	int _size;
-
-	///auxiliary function for constructor
-	void initNodes() {
-		_nodes.resize(TABLE_SIZE, nullptr);
+	for (char c1 = 'z';c1 >= 'a';c1--) {
+		for (char c2 = 'r';c2 >='a';c2--) {
+			for (char c3 = 'b';c3 <= 'z';c3++) {
+				string s = string(1, c1) + string(1, c2) + string(1, c3);
+				mp.erase(s);
+				table.erase(s);
+			}
+		}
 	}
+	ofstream errorOut("errorLog.txt");
 
-	///function that makes *this a copy of given hashtable
-	void copy(const HashTable& ht) {
-		for (int i = 0;i < TABLE_SIZE;i++) {
-			if (ht._nodes[i] != nullptr) {
-				HashNode *pHT = ht._nodes[i];
-				HashNode *pThis = this->_nodes[i];
-				while (pHT) {
-					pThis = new HashNode(pHT->_key, pHT->_value);
-					pHT = pHT->_next;
-					pThis = pThis->_next;
+	for (char c1 = 'a';c1 <= 'z';c1++) {
+		for (char c2 = 'a';c2 <= 'z';c2++) {
+			for (char c3 = 'a';c3 <= 'z';c3++) {
+				string s = string(1,c1) + string(1,c2) + string(1,c3);
+				bool bMap = mp.find(s) != mp.end();
+				bool bTable = table.find(s);
+				if (bMap != bTable) {
+					errorOut << s << endl;
 				}
 			}
 		}
 	}
-
-	///clears the hash table
-	void clear() {
-		for (int i = 0;i < TABLE_SIZE;i++) {
-			HashNode *p = _nodes[i];
-			while (p) {
-				HashNode *t = p;
-				p = p->_next;
-				delete t;
-			}
-		}
-	}
-
-	///returns the hash by key
-	int getHashByKey(keyType const& key)const {
-		int hash = 0;
-		int currPrime = 1;
-		for (auto it : key) {
-			hash += it*currPrime;
-			currPrime *= currPrime;
-			hash %= TABLE_SIZE;
-			currPrime %= TABLE_SIZE;
-		}
-		return hash;
-	}
-
-};
-
-///=============================================================================================================================
-
-int main() {
-	HashTable table;
-	table["a"] = 1;
-	cout << table["a"] << "\n";
-	table["a"] = 3;
-	table["a"] = 1;
-	table["b"] = 2;
-	table["b"] = 31;
-	cout << table["a"] << " " << table["b"] << "\n";
-	table.erase("a");
-	cout << table["a"] << " " << table["b"] << "\n";
-	cout << table["a"] << "\n";
+	system("pause");
 	return 0;
 }
+
