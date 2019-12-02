@@ -45,6 +45,8 @@ public:
 	///gets size
 	int getSize()const;
 
+	friend ostream& operator<<(std::ostream &out,const HashTable& tt);
+
 	///returns flag if there is the key in the table
 	bool find(const keyType& key) const;
 
@@ -59,15 +61,15 @@ private:
 
 	const int PRIME = 237;			///prime number used for hashing
 
-	///coefficient, used for recalculating of the TABLE_SIZE : if the real size is bigger 
-	/// than TABLE_SIZE * EXPANDCOEF , than we make out table two times bigger
+									///coefficient, used for recalculating of the TABLE_SIZE : if the real size is bigger 
+									/// than TABLE_SIZE * EXPANDCOEF , than we make out table two times bigger
 	const size_t EXPANDCOEF = 15;
 
 	vector<HashNode*> _nodes;		///lists of the hashTable
 
 	size_t _size;					///number of elements in hashtable
 
-	///auxiliary function for constructor
+									///auxiliary function for constructor
 	void initNodes();
 
 	///function that makes *this a copy of given hashtable
@@ -236,6 +238,7 @@ void HashTable::checkRebuild()
 	}
 }
 
+
 void HashTable::rebuildTable(bool b)			///if b == 0 then squeeze, else expand
 {
 	vector<pair<keyType, valueType> > vec;
@@ -247,7 +250,7 @@ void HashTable::rebuildTable(bool b)			///if b == 0 then squeeze, else expand
 		}
 	}
 	clear();
-	if(b)
+	if (b)
 		TABLE_SIZE *= 2;
 	else {
 		TABLE_SIZE /= 2;
@@ -276,12 +279,22 @@ void HashTable::rebuildTable(bool b)			///if b == 0 then squeeze, else expand
 
 
 
-
+HashTable func(HashTable f) {
+	f["a"]=4;
+	return f;
+}
 
 
 int main() {
 	std::unordered_map<string, int> mp;
 	HashTable table;
+	for (char c1 = 'a';c1 <= 'z';c1++) {
+		table[string(1,c1)]=(int)c1;
+	}
+	HashTable table2=func(table);
+	cout<<table<<std::endl << std::endl <<table2;
+	system("pause");
+	return 0;
 	for (char c1 = 'a';c1 <= 'z';c1++) {
 		for (char c2 = 'a';c2 <= 'z';c2++) {
 			for (char c3 = 'a';c3 <= 'z';c3++) {
@@ -293,7 +306,7 @@ int main() {
 	}
 
 	for (char c1 = 'z';c1 >= 'a';c1--) {
-		for (char c2 = 'r';c2 >='a';c2--) {
+		for (char c2 = 'r';c2 >= 'a';c2--) {
 			for (char c3 = 'b';c3 <= 'z';c3++) {
 				string s = string(1, c1) + string(1, c2) + string(1, c3);
 				mp.erase(s);
@@ -306,7 +319,7 @@ int main() {
 	for (char c1 = 'a';c1 <= 'z';c1++) {
 		for (char c2 = 'a';c2 <= 'z';c2++) {
 			for (char c3 = 'a';c3 <= 'z';c3++) {
-				string s = string(1,c1) + string(1,c2) + string(1,c3);
+				string s = string(1, c1) + string(1, c2) + string(1, c3);
 				bool bMap = mp.find(s) != mp.end();
 				bool bTable = table.find(s);
 				if (bMap != bTable) {
@@ -319,3 +332,14 @@ int main() {
 	return 0;
 }
 
+ostream & operator<<(std::ostream & out, const HashTable & tt)
+{
+	for (int i = 0;i < tt.TABLE_SIZE;i++) {
+		HashNode *p = tt._nodes[i];
+		while (p) {
+			out<<p->_key<<" "<<p->_value<<std::endl;
+			p = p->_next;
+		}
+	}
+	return out;
+}
