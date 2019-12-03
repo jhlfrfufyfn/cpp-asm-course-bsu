@@ -51,85 +51,50 @@ template<typename info_type>
 BTree<info_type>::BTree() : root(nullptr) {}
 
 template<typename info_type>
-int calculateSubtreeSize(BNode<info_type> * tree, std::unordered_map<info_type, int>& subtreeSize) {
-	if (tree == nullptr) {
-		return 0;
-	}
-	return subtreeSize[tree->_info] = calculateSubtreeSize(tree->_left, subtreeSize) + calculateSubtreeSize(tree->_right, subtreeSize)+1;
-}
-
-template<typename info_type>
-int calculateChainLength(BNode<info_type> * tree, std::unordered_map<info_type, int>& maxChainLength) {
-	if (tree == nullptr) {
-		return 0;
-	}
-	return maxChainLength[tree->_info] = std::max(calculateChainLength(tree->_left, maxChainLength), calculateChainLength(tree->_right, maxChainLength)) + 1;
-}
-
-
-template<typename info_type>
-void findAVLSubtrees(BNode<info_type>* tree, std::unordered_map<info_type, bool>& isAVL, std::unordered_map<info_type, int>& maxChainLength) {
-	if (tree == nullptr) {
-		return;
-	}
-	int leftChain = 0;
-	if (tree->_left) {
-		leftChain = maxChainLength[tree->_left->_info];
-	}
-	int rightChain = 0;
-	if (tree->_right) {
-		rightChain = maxChainLength[tree->_right->_info];
-	}
-	if (std::abs(leftChain - rightChain) < 2) {
-		isAVL[tree->_info] = true;
-	}
-	findAVLSubtrees(tree->_left, isAVL, maxChainLength);
-	findAVLSubtrees(tree->_right, isAVL, maxChainLength);
-}
-
-
-template<typename info_type>
-BNode<info_type> * biggestAVLSubtree(BNode<info_type> * root, std::unordered_map<info_type, bool>& isAVL, std::unordered_map<info_type, int>& subtreeSize) {
+BNode<info_type>* indBiggestAVLSubtree(BNode<info_type> *root, int &maxChainSize, int &avlSize) {
 	if (!root) {
+		avlSize = 0;
+		maxChainSize = 0;
 		return nullptr;
 	}
 
-	if (isAVL[root->_info] != 0) {
+	///left call
+	int leftAvlSize = 0;
+	int leftMaxChainSize = 0;
+	BNode<info_type> *leftNode = indBiggestAVLSubtree(root->_left, leftMaxChainSize, leftAvlSize);
+
+	///right call
+	int rightAvlSize = 0;
+	int rightMaxChainSize = 0;
+	BNode<info_type> *rightNode = indBiggestAVLSubtree(root->_right, rightMaxChainSize, rightAvlSize);
+
+	///if we can union left and right
+	if (abs(leftMaxChainSize - rightMaxChainSize) <= 1 && leftNode == root->_left && rightNode == root->_right) {
+		maxChainSize = std::max(leftMaxChainSize, rightMaxChainSize) + 1;
+		avlSize = leftAvlSize + rightAvlSize + 1;
 		return root;
 	}
 
-	BNode<info_type> * ansLeft = biggestAVLSubtree(root->_left, isAVL, subtreeSize);
-	BNode<info_type> * ansRight = biggestAVLSubtree(root->_right, isAVL, subtreeSize);
-	if (ansLeft == nullptr && ansRight == nullptr) {
-		return nullptr;
+	///if left avl subtree is bigger
+	if (leftAvlSize > rightAvlSize) {
+		avlSize = leftAvlSize;
+		maxChainSize = leftMaxChainSize;
+		return leftNode;
 	}
-	else if (ansLeft == nullptr) {
-		return ansRight;
-	}
-	else if (ansRight == nullptr) {
-		return ansLeft;
-	}
+	///then right avl subtree is bigger
 	else {
-		if (subtreeSize[ansLeft->_info] < subtreeSize[ansRight->_info])
-			return ansRight;
-		else
-			return ansLeft;
+		avlSize = rightAvlSize;
+		maxChainSize = rightMaxChainSize;
+		return rightNode;
 	}
 }
+
 
 template<typename info_type>
 BNode<info_type>* BTree<info_type>::findBiggestAVLSubtree()
 {
-	std::unordered_map<info_type, int> subtreeSize;
-	calculateSubtreeSize(root, subtreeSize);
-
-	std::unordered_map<info_type, int> maxChainLength;
-	calculateChainLength(root, maxChainLength);
-
-	std::unordered_map<info_type, bool> isAVL;
-	findAVLSubtrees(root, isAVL, maxChainLength);
-
-	return biggestAVLSubtree(root, isAVL, subtreeSize);
+	int f1 = 0, f2 = 0;
+	return indBiggestAVLSubtree(root,f1,f2);
 }
 
 template<typename info_type>
@@ -296,7 +261,7 @@ int BTree<info_type>::minimum(BNode<info_type> * t) {
 
 int main() {
 	BTree<int> tree;
-	for (int i : {1, 2, 3, 4, 5, 6, 7}) {
+	for (int i : {10,5,15,12,17,19,13}) {
 		tree.insert(i);
 	}
 	BNode<int>* node = tree.findBiggestAVLSubtree();
