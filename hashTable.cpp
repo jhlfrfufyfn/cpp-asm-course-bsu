@@ -45,7 +45,7 @@ public:
 	///gets size
 	int getSize()const;
 
-	friend ostream& operator<<(std::ostream &out,const HashTable& tt);
+	friend ostream& operator<<(std::ostream &out, const HashTable& tt);
 
 	///returns flag if there is the key in the table
 	bool find(const keyType& key) const;
@@ -93,9 +93,9 @@ HashTable::HashTable() :_size(0)
 	initNodes();
 }
 
-HashTable::HashTable(const HashTable & other)
+HashTable::HashTable(const HashTable & other) : _size(0)
 {
-	HashTable();
+	initNodes();
 	copy(other);
 }
 
@@ -191,11 +191,11 @@ void HashTable::copy(const HashTable & ht)
 	for (int i = 0;i < TABLE_SIZE;i++) {
 		if (ht._nodes[i] != nullptr) {
 			HashNode *pHT = ht._nodes[i];
-			HashNode *pThis = this->_nodes[i];
+			HashNode **pThis = &(this->_nodes[i]);
 			while (pHT) {
-				pThis = new HashNode(pHT->_key, pHT->_value);
+				*pThis = new HashNode(pHT->_key, pHT->_value);
 				pHT = pHT->_next;
-				pThis = pThis->_next;
+				pThis = &(*pThis)->_next;
 			}
 		}
 	}
@@ -280,7 +280,7 @@ void HashTable::rebuildTable(bool b)			///if b == 0 then squeeze, else expand
 
 
 HashTable func(HashTable f) {
-	f["a"]=4;
+	f["aa"] = 4;
 	return f;
 }
 
@@ -289,42 +289,31 @@ int main() {
 	std::unordered_map<string, int> mp;
 	HashTable table;
 	for (char c1 = 'a';c1 <= 'z';c1++) {
-		table[string(1,c1)]=(int)c1;
-	}
-	HashTable table2=func(table);
-	cout<<table<<std::endl << std::endl <<table2;
-	system("pause");
-	return 0;
-	for (char c1 = 'a';c1 <= 'z';c1++) {
 		for (char c2 = 'a';c2 <= 'z';c2++) {
-			for (char c3 = 'a';c3 <= 'z';c3++) {
-				string s = string(1, c1) + string(1, c2) + string(1, c3);
+				string s = string(1, c1) + string(1, c2);
 				mp[s] = (int)c1 + c2;
 				table[s] = (int)c1 + c2;
-			}
+		}
+	}
+	HashTable table2 = func(table);
+	cout << table << std::endl << std::endl << table2;
+	for (char c1 = 'z';c1 >= 'a';c1--) {
+		for (char c2 = 'r';c2 >= 'a';c2--) {
+				string s = string(1, c1) + string(1, c2);
+				mp.erase(s);
+				table.erase(s);
 		}
 	}
 
-	for (char c1 = 'z';c1 >= 'a';c1--) {
-		for (char c2 = 'r';c2 >= 'a';c2--) {
-			for (char c3 = 'b';c3 <= 'z';c3++) {
-				string s = string(1, c1) + string(1, c2) + string(1, c3);
-				mp.erase(s);
-				table.erase(s);
-			}
-		}
-	}
 	ofstream errorOut("errorLog.txt");
 
 	for (char c1 = 'a';c1 <= 'z';c1++) {
 		for (char c2 = 'a';c2 <= 'z';c2++) {
-			for (char c3 = 'a';c3 <= 'z';c3++) {
-				string s = string(1, c1) + string(1, c2) + string(1, c3);
-				bool bMap = mp.find(s) != mp.end();
-				bool bTable = table.find(s);
-				if (bMap != bTable) {
-					errorOut << s << endl;
-				}
+			string s = string(1, c1) + string(1, c2);
+			bool bMap = mp.find(s) != mp.end();
+			bool bTable = table.find(s);
+			if (bMap != bTable) {
+				errorOut << s << endl;
 			}
 		}
 	}
@@ -337,7 +326,7 @@ ostream & operator<<(std::ostream & out, const HashTable & tt)
 	for (int i = 0;i < tt.TABLE_SIZE;i++) {
 		HashNode *p = tt._nodes[i];
 		while (p) {
-			out<<p->_key<<" "<<p->_value<<std::endl;
+			out << p->_key << " " << p->_value << std::endl;
 			p = p->_next;
 		}
 	}
