@@ -1,3 +1,4 @@
+#include <iomanip>
 #include <iostream>
 using namespace std;
 int main() {
@@ -16,7 +17,10 @@ int main() {
 	double element = (n - 1) * n;
 	double s = element;
 	for (int i = 1;i < n;i++) {
-		if (i < n - i) {
+		if (i <= n / 2 && i + 1 > n / 2) {
+			element /= double(n - i);
+		}
+		if (i + 1 < n - i) {
 			element *= (double)(n - 2 * i)*(double)(n - 2 * i - 1);
 			element /= (double)(i + 1)*(double)(i + 1)*(double)(i + 1);
 		}
@@ -26,7 +30,7 @@ int main() {
 		}
 		s += element;
 	}
-	cout << s << endl;
+	cout << fixed << setprecision(8) << s << endl;
 	system("pause");
 	return 0;
 }
