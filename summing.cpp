@@ -5,7 +5,7 @@ int main() {
 	int n;
 	cin >> n;
 	if (n == 0) {
-		cout << 1 << endl;
+		cout << 0 << endl;
 		system("pause");
 		exit(0);
 	}
@@ -14,23 +14,24 @@ int main() {
 		system("pause");
 		exit(0);
 	}
-	double element = (n - 1) * n;
-	double s = element;
-	for (int i = 1;i < n;i++) {
-		if (i <= n / 2 && i + 1 > n / 2) {
-			element /= double(n - i);
-		}
-		if (i + 1 < n - i) {
-			element *= (double)(n - 2 * i)*(double)(n - 2 * i - 1);
-			element /= (double)(i + 1)*(double)(i + 1)*(double)(i + 1);
-		}
-		else {
-			element *= (double)(n - i);
-			element /= (double)(i + 1)*(double)(i + 1);
-		}
-		s += element;
+	long double element = (n - 1)*n;
+	long double sum = element;
+	int m = n / 2;
+	for (int i = 2;i <= m;i++) {
+		element *= (long double)(n - 2 * i + 1)*(long double)(n - 2 * i + 2);
+		element /= long double(i*i*i);
+		sum += element;
 	}
-	cout << fixed << setprecision(8) << s << endl;
+	if (n % 2 == 1) {
+		element /= double(m + 1);
+	}
+	for (int i = m + 1;i <= n;i++) {
+		element *= (long double)(n - i + 1);
+		element /= long double(i*i);
+		sum += element;
+	}
+	cout << fixed << setprecision(10) << sum << endl;
+
 	system("pause");
 	return 0;
 }
