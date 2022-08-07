@@ -1,5 +1,5 @@
 # first_course_university
-> Repo from the times when I was young and didn't know how to use github ¯\_(ツ)_/¯
+> Repo from the times when I was young and didn't know how to use github ¯\\_(ツ)_/¯
 
 Contains some C++ problem solutions from the first course of my BSU studies.
 
